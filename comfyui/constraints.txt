@@ -1,0 +1,5 @@
+# Official ComfyUI cu126 environment; cuDNN >=9.11 drops Pascal support.
+torch==2.10.0+cu126
+torchvision==0.25.0+cu126
+torchaudio==2.10.0+cu126
+nvidia-cudnn-cu12==9.10.2.21
