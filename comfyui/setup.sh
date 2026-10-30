@@ -1,8 +1,14 @@
 rebuild=false
 case "${1:-}" in
-  "") ;;
-  --rebuild) rebuild=true; shift ;;
-  *) echo "Usage: comfyui-setup [--rebuild]" >&2; exit 2 ;;
+"") ;;
+--rebuild)
+  rebuild=true
+  shift
+  ;;
+*)
+  echo "Usage: comfyui-setup [--rebuild]" >&2
+  exit 2
+  ;;
 esac
 if [[ $# -ne 0 ]]; then
   echo "Usage: comfyui-setup [--rebuild]" >&2
@@ -13,7 +19,10 @@ mkdir -p "$data_dir"/{environments,custom_nodes,input,models,output,user} \
   "$CUDA_CACHE_PATH" "$HF_HOME" "$TORCH_HOME"
 # Serialize setup/repair; neither may modify the currently running environment.
 exec 9>"$data_dir/.setup.lock"
-flock -n 9 || { echo "Another ComfyUI setup is running." >&2; exit 1; }
+flock -n 9 || {
+  echo "Another ComfyUI setup is running." >&2
+  exit 1
+}
 for pointer in current previous; do
   if [[ -e "$data_dir/$pointer" && ! -L "$data_dir/$pointer" ]]; then
     echo "Refusing to replace non-symlink: $data_dir/$pointer" >&2
@@ -21,9 +30,9 @@ for pointer in current previous; do
   fi
 done
 
-if ! "$rebuild" && [[ -f "$current/ready" ]] && \
-  [[ "$(cat "$current/ready")" == "$environment_id" ]] && \
-  [[ -d "$current/app" && ! -L "$current/app" && -w "$current/app" ]] && \
+if ! "$rebuild" && [[ -f "$current/ready" ]] &&
+  [[ "$(cat "$current/ready")" == "$environment_id" ]] &&
+  [[ -d "$current/app" && ! -L "$current/app" && -w "$current/app" ]] &&
   [[ -x "$current/.venv/bin/python" ]]; then
   "$current/.venv/bin/python" "$current/runtime/check-gpu.py"
   echo "ComfyUI is already prepared. Start it with: comfyui"

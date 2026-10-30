@@ -1,7 +1,7 @@
 """Fail before activation if the wheel/runtime cannot actually execute on Pascal."""
 
 import torch
-import torch.nn.functional as functional
+from torch.nn import functional
 
 
 def main():
@@ -26,7 +26,9 @@ def main():
         if (torch.ones(1, device="cuda") * 2).item() != 2:
             raise SystemExit("CUDA arithmetic failed")
 
-        image = torch.arange(4 * 16 * 16, dtype=torch.float32).reshape(1, 4, 16, 16) / 1024
+        image = (
+            torch.arange(4 * 16 * 16, dtype=torch.float32).reshape(1, 4, 16, 16) / 1024
+        )
         weight = torch.ones(4, 4, 3, 3, dtype=torch.float32) / 36
         expected = functional.conv2d(image, weight, padding=1)
         # Call cuDNN explicitly: ordinary conv2d can silently use another backend.

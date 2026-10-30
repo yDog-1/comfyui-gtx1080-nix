@@ -2,12 +2,11 @@
 
 import fcntl
 import os
-from pathlib import Path
 import shutil
 import subprocess
 import tempfile
 import unittest
-
+from pathlib import Path
 
 SCRIPTS = Path(__file__).parent
 
@@ -40,7 +39,9 @@ class SetupTests(unittest.TestCase):
             "TORCH_HOME": str(self.data / ".cache/torch"),
             "EVENT_LOG": str(self.log),
         }
-        self.executable("nix-store", '''
+        self.executable(
+            "nix-store",
+            """
 while [[ $# -gt 0 ]]; do
   if [[ "$1" == --add-root ]]; then
     ln -s "$managed_runtime" "$2"
@@ -49,8 +50,11 @@ while [[ $# -gt 0 ]]; do
   shift
 done
 exit 1
-''')
-        self.executable("uv", '''
+""",
+        )
+        self.executable(
+            "uv",
+            """
 printf '%s\\n' "$*" >>"$EVENT_LOG"
 if [[ "$*" == *"pip compile"* ]]; then
   if [[ "${FAIL_COMPILE:-0}" == 1 ]]; then exit 1; fi
@@ -84,13 +88,15 @@ PYTHON
 else
   exit 99
 fi
-''')
+""",
+        )
 
     def executable(self, name, contents):
         path = self.bin / name
         shebang = f"#!{shutil.which('bash')}"
         path.write_text(
-            shebang + "\nset -euo pipefail\n"
+            shebang
+            + "\nset -euo pipefail\n"
             + contents.replace("#!/usr/bin/env bash", shebang)
         )
         path.chmod(0o755)
@@ -98,6 +104,7 @@ fi
     def run_script(self, script="setup.sh", *args, **environment):
         return subprocess.run(
             ["bash", "-euo", "pipefail", str(SCRIPTS / script), *args],
+            check=False,
             env=self.environment | environment,
             text=True,
             capture_output=True,
@@ -155,7 +162,9 @@ fi
         self.assertEqual((source / "nested/config.json").read_text(), "original")
         self.assertFalse((source / "web").exists())
         self.assertEqual(self.setup_ok(), active)
-        self.assertEqual((app / "nested/config.json").read_text(), "changed by extension")
+        self.assertEqual(
+            (app / "nested/config.json").read_text(), "changed by extension"
+        )
 
     def test_setup_migrates_store_link_without_modifying_old_environment(self):
         first = self.setup_ok()
@@ -230,7 +239,9 @@ fi
         (legacy / "main.py").touch()
         (self.data / ".venv/bin").mkdir(parents=True)
         python = self.data / ".venv/bin/python"
-        python.write_text(f"#!{shutil.which('bash')}\nprintf '%s\\n' \"$@\" >\"$EVENT_LOG\"\n")
+        python.write_text(
+            f'#!{shutil.which("bash")}\nprintf \'%s\\n\' "$@" >"$EVENT_LOG"\n'
+        )
         python.chmod(0o755)
         result = self.run_script("launch.sh")
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -251,7 +262,9 @@ fi
         result = self.run_script("update-lock.sh", str(output))
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(output.read_text(), "new-lock\n")
-        self.assertIn(str(self.runtime / "app/manager_requirements.txt"), self.log.read_text())
+        self.assertIn(
+            str(self.runtime / "app/manager_requirements.txt"), self.log.read_text()
+        )
         self.assertEqual(self.run_script("update-lock.sh").returncode, 2)
 
     def extension_requirements(self, name, contents="example-package\n"):
@@ -276,8 +289,12 @@ fi
         self.assertEqual(result.returncode, 0, result.stderr)
         args = Path(f"{self.log}.uv-args").read_text().splitlines()
         self.assertEqual(args[:3], ["--no-config", "pip", "install"])
-        self.assertEqual(args[args.index("--python") + 1], str(active / ".venv/bin/python"))
-        self.assertEqual(args[args.index("--constraint") + 1], str(active / "constraints.txt"))
+        self.assertEqual(
+            args[args.index("--python") + 1], str(active / ".venv/bin/python")
+        )
+        self.assertEqual(
+            args[args.index("--constraint") + 1], str(active / "constraints.txt")
+        )
         self.assertEqual(args[args.index("--torch-backend") + 1], "cu126")
         self.assertEqual(args.count("--requirement"), 3)
         self.assertIn(str(first), args)
@@ -289,8 +306,12 @@ fi
         self.assertNotIn("pip sync", self.log.read_text())
         self.assertEqual(
             Path(f"{self.log}.env").read_text().splitlines(),
-            [str(active / ".venv"), str(active / ".venv/bin/python"),
-             str(active / "constraints.txt"), str(active / "constraints.txt")],
+            [
+                str(active / ".venv"),
+                str(active / ".venv/bin/python"),
+                str(active / "constraints.txt"),
+                str(active / "constraints.txt"),
+            ],
         )
         self.assertEqual((self.data / "current").resolve(), active)
         self.assertEqual((active / ".venv/bin/uv").resolve(), self.bin / "uv")

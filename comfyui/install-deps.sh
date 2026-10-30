@@ -1,8 +1,14 @@
 options=()
 case "${1:-}" in
-  "") ;;
-  --dry-run) options+=(--dry-run); shift ;;
-  *) echo "Usage: comfyui-install-deps [--dry-run]" >&2; exit 2 ;;
+"") ;;
+--dry-run)
+  options+=(--dry-run)
+  shift
+  ;;
+*)
+  echo "Usage: comfyui-install-deps [--dry-run]" >&2
+  exit 2
+  ;;
 esac
 if [[ $# -ne 0 ]]; then
   echo "Usage: comfyui-install-deps [--dry-run]" >&2
@@ -15,7 +21,10 @@ if [[ ! -L "$current" || ! -f "$current/ready" ]]; then
 fi
 # Share setup's lock so a concurrent rebuild cannot change the target midway.
 exec 9>"$data_dir/.setup.lock"
-flock -n 9 || { echo "Another ComfyUI setup or dependency install is running." >&2; exit 1; }
+flock -n 9 || {
+  echo "Another ComfyUI setup or dependency install is running." >&2
+  exit 1
+}
 active=$(readlink -f "$current")
 if [[ ! -f "$active/ready" || ! -x "$active/.venv/bin/python" || ! -f "$active/constraints.txt" ]]; then
   echo "ComfyUI environment is incomplete. Run comfyui-repair." >&2
