@@ -144,6 +144,20 @@ ComfyUI の更新前に `user/` をバックアップしてください。不要
 
 ## 依存関係の更新
 
+### flake.lock の自動更新
+
+GitHub Actions の `Update flake.lock` が毎週月曜日 09:00（日本時間）に
+`nix flake update` を実行します。Actions 画面から手動実行もできます。
+`nix flake check` が成功すると、変更がある場合に更新 PR を作成し、
+既存の更新 PR があれば同じブランチを更新します。
+
+リポジトリの Settings → Actions → General → Workflow permissions で
+`Allow GitHub Actions to create and approve pull requests` を有効にしてください。
+標準の `GITHUB_TOKEN` を使うため、生成された PR では別の CI ワークフローは
+自動起動しません。更新ワークフロー内で検証結果を確認できます。
+
+### ComfyUI の更新
+
 1. 上流リリースのコミットと Nix ソースハッシュを確認して `comfyui/source.nix` を更新します。
    GPU 関連の依存構成を意図的に変更する場合は、`comfyui/constraints.txt` も更新します。
 2. 新しい起動コマンドをビルドし、その中の `comfyui-update-lock` を使います。
