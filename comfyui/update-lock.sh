@@ -8,6 +8,7 @@ temporary=$(mktemp "$(dirname "$output")/.comfyui-lock.XXXXXXXX")
 trap 'rm -f -- "$temporary"' EXIT
 uv --no-config pip compile "$managed_runtime/app/requirements.txt" \
   "$managed_runtime/app/manager_requirements.txt" \
+  "$managed_runtime/requirements-extra.txt" \
   --constraint "$managed_runtime/constraints.txt" \
   --python "$managed_runtime/python/bin/python" \
   --python-platform x86_64-manylinux_2_28 \

@@ -9,6 +9,8 @@ Home Manager が起動コマンドと Nix の Python 3.12 を提供し、`uv` �
 CUDA と cuDNN は nixpkgs ではなく、固定した PyTorch wheel の依存関係から導入します。
 初期の cu126 構成は[公式の環境定義](https://github.com/Comfy-Org/ComfyUI-Standalone-Environments/blob/main/requirements-nvidia-cu126.txt)に合わせています。
 cuDNN 9.10.2 の指定は意図的です。9.11 以降では Pascal 対応が削除されています。
+Manager のパッケージ検査に必要な `torchaudio` も `requirements-extra.txt` で明示し、
+`constraints.txt` に従って PyTorch と同じ cu126 系のバージョンを lock に含めます。
 
 ## 導入と起動
 

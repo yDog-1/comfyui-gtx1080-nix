@@ -1,0 +1,2 @@
+# Manager checks torch, torchvision, and torchaudio together.
+torchaudio

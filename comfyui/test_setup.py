@@ -265,6 +265,9 @@ fi
         self.assertIn(
             str(self.runtime / "app/manager_requirements.txt"), self.log.read_text()
         )
+        self.assertIn(
+            str(self.runtime / "requirements-extra.txt"), self.log.read_text()
+        )
         self.assertEqual(self.run_script("update-lock.sh").returncode, 2)
 
     def extension_requirements(self, name, contents="example-package\n"):

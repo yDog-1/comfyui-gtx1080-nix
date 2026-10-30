@@ -24,6 +24,10 @@
       path = ./comfyui/requirements.lock;
     }
     {
+      name = "requirements-extra.txt";
+      path = ./comfyui/requirements-extra.txt;
+    }
+    {
       name = "constraints.txt";
       path = ./comfyui/constraints.txt;
     }
