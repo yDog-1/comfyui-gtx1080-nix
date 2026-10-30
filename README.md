@@ -169,11 +169,28 @@ ComfyUI の更新前に `user/` をバックアップしてください。不要
 python3 comfyui/test_setup.py -v
 nix build --no-link .#checks.x86_64-linux.comfyui-setup
 nix flake check --print-build-logs
-nix fmt -- --check .
+nix fmt -- --fail-on-change
 ```
 
 環境の作成・切り替えに関するテストには模擬インストーラーを使うため、
 ネットワーク接続も GPU も不要です。実 GPU の検証は、別途 `comfyui-check` で行います。
 
-`nix flake check` は起動コマンドのビルドとシェルの静的検査も実行します。
+`nix flake check` は以下をまとめて検証します。
+
+- 起動コマンドのビルドと、生成したシェルスクリプトの ShellCheck
+- 環境のセットアップ・切り替えに関するテスト
+- Nix: Alejandra による整形、deadnix・statix による lint
+- Python: Ruff による整形と lint
+- Shell: shfmt による整形
+- Markdown・YAML・JSON: Prettier による整形
+- GitHub Actions: actionlint（`run` 内の ShellCheck を含む）
+- クレデンシャル: Gitleaks（検出値はログで伏せ、検出時はチェック失敗）
+
+`nix fmt` で上記フォーマッタをまとめて実行できます。
 Python の大きな依存パッケージやモデルはセットアップ時に取得し、CI では取得しません。
+
+Gitleaks の検査対象は flake に含まれる現在のソースで、Git 履歴や未追跡ファイルは含みません。
+検査時にはソースが Nix store に入るため、秘密情報を置いてからチェックする運用は避けてください。
+Nix store に入る前に確認する場合は、別途インストールした Gitleaks で
+`gitleaks dir . --redact=100 --no-banner` を実行できます。
+検査はすべての秘密情報の検出を保証するものではありません。
